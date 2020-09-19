@@ -1,0 +1,11 @@
+asgiref==3.2.10
+Django==3.1.1
+pytz==2020.1
+sqlparse==0.3.1
+git+https://github.com/encode/django-rest-framework@374c0d414237708a28eccc412c078c06d0d82be2#egg=djangorestframework
+# djangorestframework==3.11.1
+markdown==3.1.1
+django-filter>=2.2.0, <2.3
+drf-generators==0.5.0
+pyyaml>=5.1
+uritemplate==3.0.1
