@@ -68,9 +68,9 @@ class NoModelAutoSchema(AutoSchema):
     def get_query_parameters(self, path, method):
         parameters = []
 
-        view_method = getattr(self.view, self.view.action)
+        view_method = getattr(self.view, self.view.action, None)
 
-        if hasattr(view_method, '_scheme_params'):
+        if view_method and hasattr(view_method, '_scheme_params'):
             query_serializer: Serializer = view_method._scheme_params.get('query_serializer')
             for field in query_serializer.fields.values():
 
@@ -87,3 +87,40 @@ class NoModelAutoSchema(AutoSchema):
                 parameters.append(parameter)
 
         return parameters
+
+    def get_response_serializer(self, path, method):
+        view_method = getattr(self.view, self.view.action)
+        return view_method._scheme_params['response_serializer']
+
+    def get_responses(self, path, method):
+        old_func = None
+        view_method = getattr(self.view, self.view.action, None)
+        if view_method and hasattr(view_method, '_scheme_params') and view_method._scheme_params.get('response_serializer', None):
+            old_func = self.view.get_serializer
+            # this is too much hack :(
+            self.view.get_serializer = lambda: self.get_response_serializer(path, method)
+
+        responses = super(NoModelAutoSchema, self).get_responses(path, method)
+
+        if old_func:
+            self.view.get_serializer = old_func
+
+        return responses
+
+    def get_components(self, path, method):
+        components = super(NoModelAutoSchema, self).get_components(path, method)
+
+        view_method = getattr(self.view, self.view.action, None)
+        if view_method and hasattr(view_method, '_scheme_params') and view_method._scheme_params.get('response_serializer', None):
+            serializer = self.get_response_serializer(path, method)
+
+            if not isinstance(serializer, serializers.Serializer):
+                return components
+
+            component_name = self.get_component_name(serializer)
+
+            content = self.map_serializer(serializer)
+            components.update({component_name: content})
+            return components
+
+        return components

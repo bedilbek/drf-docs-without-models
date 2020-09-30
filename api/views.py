@@ -35,6 +35,18 @@ class CountrySerializer(serializers.Serializer):
     created_at = serializers.DateTimeField(required=False)
 
 
+class CountryResponseSerializer(serializers.Serializer):
+    def update(self, instance, validated_data):
+        pass
+
+    def create(self, validated_data):
+        pass
+
+    name = serializers.CharField(required=True)
+    created_at = serializers.DateTimeField(required=False)
+    extra_field = serializers.CharField(default='extra_field_for_response')
+
+
 class CountryQuerySerializer(serializers.Serializer):
     def update(self, instance, validated_data):
         pass
@@ -59,7 +71,7 @@ class CountryViewSet(viewsets.GenericViewSet):
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
-    @custom_parameters(query_serializer=CountryQuerySerializer)
+    @custom_parameters(query_serializer=CountryQuerySerializer, response_serializer=CountryResponseSerializer)
     def list(self, request, *args, **kwargs):
         page = self.paginate_queryset(countries)
         if page is not None:
